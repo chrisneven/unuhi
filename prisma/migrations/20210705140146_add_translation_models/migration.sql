@@ -1,0 +1,21 @@
+-- CreateTable
+CREATE TABLE "Message" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "key" TEXT NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "Translation" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "messageId" INTEGER NOT NULL,
+    "languageId" INTEGER NOT NULL,
+    FOREIGN KEY ("messageId") REFERENCES "Message" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY ("languageId") REFERENCES "Language" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Language" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "language" TEXT NOT NULL
+);
