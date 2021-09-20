@@ -18,7 +18,6 @@ const handler: NextApiHandler = async (req, res) => {
 
     if (req.method === 'POST') {
         const { key } = req.body;
-        console.log(req.body);
 
         if (key) {
             const result = await prisma.message.create({
@@ -28,6 +27,7 @@ const handler: NextApiHandler = async (req, res) => {
             return;
         }
     }
+
     res.status(501).send(`The HTTP ${req.method} method is not supported at this route.`);
 };
 

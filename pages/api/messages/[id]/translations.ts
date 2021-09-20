@@ -1,22 +1,53 @@
 import { NextApiHandler } from 'next';
+import nc from '../../../../lib/nc';
 import prisma from '../../../../lib/prisma';
 
-const handler: NextApiHandler = async (req, res) => {
-    if (req.method === 'POST') {
-        const message = await prisma.message.findUnique({
-            where: { id: Number(req.query.id as string) },
-            include: { translations: true },
-        });
+interface Body {
+    translation?: string;
+    translationId?: string;
+    languageId?: string;
+}
 
-        const { translation, languageId } = req.body;
-        const result = await prisma.translation.create({
-            data: { translation, language: { connect: { id: languageId } }, message: { connect: { id: message.id } } },
-        });
-        res.status(201).json(result);
-        return;
+const isUpdate = (body: Body) => !!(body.translation && body.translationId);
+
+const isCreate = (body: Body) => !!(body.translation && body.languageId);
+
+const handlePut: NextApiHandler = async (req, res) => {
+    const body: Body = req.body;
+    const messageId = req.query.id;
+    const isUpdating = isUpdate(body);
+    const isCreating = isCreate(body);
+
+    if (!isUpdating && !isCreating) {
+        throw new Error('No valid body given');
     }
 
-    res.status(501).send(`The HTTP ${req.method} method is not supported at this route.`);
+    const { translation, languageId, translationId } = body;
+
+    let result = null;
+
+    if (isUpdating) {
+        result = await prisma.translation.update({
+            where: { id: Number(translationId) },
+            data: {
+                translation,
+            },
+        });
+    }
+
+    if (isCreating) {
+        result = await prisma.translation.create({
+            data: {
+                translation,
+                language: { connect: { id: Number(languageId) } },
+                message: { connect: { id: Number(messageId) } },
+            },
+        });
+    }
+
+    res.status(201).json(result);
 };
+
+const handler = nc().put(handlePut);
 
 export default handler;

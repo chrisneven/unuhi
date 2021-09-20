@@ -2,8 +2,9 @@ import { NextApiHandler } from 'next';
 import prisma from '../../../../lib/prisma';
 
 const handler: NextApiHandler = async (req, res) => {
+    const messageId = Number(req.query.id);
     const message = await prisma.message.findUnique({
-        where: { id: Number(req.query.id as string) },
+        where: { id: messageId },
         include: { translations: true },
     });
 
@@ -23,6 +24,12 @@ const handler: NextApiHandler = async (req, res) => {
         const result = await prisma.translation.create({
             data: { translation, language: { connect: { id: languageId } }, message: { connect: { id: message.id } } },
         });
+        res.status(201).json(result);
+        return;
+    }
+
+    if (req.method === 'DELETE') {
+        const result = await prisma.message.delete({ where: { id: messageId } });
         res.status(201).json(result);
         return;
     }
