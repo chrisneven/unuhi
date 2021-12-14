@@ -1,6 +1,6 @@
 import { NextApiHandler } from 'next';
-import nc from '../../../../lib/nc';
-import prisma from '../../../../lib/prisma';
+import nc from '../../../../../lib/nc';
+import prisma from '../../../../../lib/prisma';
 
 interface Body {
     translation?: string;

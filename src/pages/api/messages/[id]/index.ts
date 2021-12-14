@@ -8,9 +8,7 @@ const handler: NextApiHandler = async (req, res) => {
         include: { translations: true },
     });
 
-    console.log(req.query.id);
     if (req.method === 'GET') {
-        console.log(message);
         if (message) {
             res.json(message);
         } else {
