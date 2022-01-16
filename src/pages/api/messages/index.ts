@@ -1,18 +1,26 @@
-import { Message, Translation } from '@prisma/client';
+import { Message as MessageType, Translation, Prisma, Language } from '@prisma/client';
 import { NextApiHandler } from 'next';
-import { paramToNumber } from '../../../lib/helpers';
+import { paramToNumber, paramToString } from '../../../lib/helpers';
 import prisma from '../../../lib/prisma';
+
+export type MessageFilter = 'missing';
+export type MessageSort = 'asc' | 'desc';
 
 export type GetMessageVariables = {
     take?: number;
     skip?: number;
-    filter?: 'missing';
+    filter?: MessageFilter;
+    sort?: MessageSort;
+};
+
+export type Message = MessageType & {
+    translations: (Translation & {
+        language: Language;
+    })[];
 };
 
 export type GetMessagesResponse = {
-    messages: (Message & {
-        translations: Translation[];
-    })[];
+    messages: Message[];
     count: number;
 };
 
@@ -20,21 +28,30 @@ const handler: NextApiHandler = async (req, res) => {
     if (req.method === 'GET') {
         const take = paramToNumber(req.query.take) ?? 100;
         const skip = paramToNumber(req.query.skip);
-        const count = await prisma.message.count();
-        const messages = await prisma.message.findMany({ include: { translations: true }, take, skip });
+        const filter = paramToString<MessageFilter>(req.query.filter);
+        const sort = paramToString<MessageSort>(req.query.sort) ?? 'asc';
+        const langIds = (await prisma.language.findMany()).map((lang) => lang.id);
+        const where: Prisma.MessageWhereInput = {
+            OR:
+                filter === 'missing'
+                    ? langIds.map((id) => ({
+                          translations: {
+                              none: {
+                                  languageId: id,
+                              },
+                          },
+                      }))
+                    : undefined,
+        };
 
-        if (req.query.filter === 'missing') {
-            // const langCount = await prisma.language.count();
-            // messages = messages.filter((message) => message.translations.length !== langCount);
-
-            const response: GetMessagesResponse = {
-                messages,
-                count,
-            };
-
-            res.json(response);
-            return;
-        }
+        const messages = await prisma.message.findMany({
+            include: { translations: { include: { language: true } } },
+            take,
+            skip,
+            where,
+            orderBy: { id: sort },
+        });
+        const count = await prisma.message.count({ where });
 
         const response: GetMessagesResponse = {
             messages,

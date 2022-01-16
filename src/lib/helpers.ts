@@ -1,4 +1,7 @@
-const paramToNumber = (val?: string | string[] | undefined): number | undefined =>
-    typeof val === 'string' ? Number(val) : undefined;
+type Param = string | string[] | undefined;
 
-export { paramToNumber };
+const paramToNumber = (val: Param) => (typeof val === 'string' ? Number(val) : undefined);
+
+const paramToString = <Output extends string>(val: Param) => (typeof val === 'string' ? (val as Output) : undefined);
+
+export { paramToNumber, paramToString };

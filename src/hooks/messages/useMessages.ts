@@ -7,12 +7,11 @@ import { GetMessageVariables, GetMessagesResponse } from '../../pages/api/messag
 const fetcher = (url: string, params: GetMessageVariables) =>
     axios.get<GetMessagesResponse | null>(url, { params }).then((res) => res.data);
 
-const useMessages = (currentPage: number) => {
+const useMessages = (currentPage: number, vars?: GetMessageVariables) => {
     const router = useRouter();
-    return useSWR(
-        router.isReady && ['/api/messages', { skip: Math.max(currentPage - 1, 0) * PER_PAGE, take: PER_PAGE }],
-        fetcher
-    );
+    const variables: GetMessageVariables = { skip: Math.max(currentPage - 1, 0) * PER_PAGE, take: PER_PAGE, ...vars };
+
+    return useSWR(router.isReady && ['/api/messages', variables], fetcher);
 };
 
 export default useMessages;

@@ -29,6 +29,11 @@ const Pagination = ({ count, pageSize = PER_PAGE }: Props) => {
             </Button>
         </PaginationLink>
     );
+
+    if (count <= pageSize) {
+        return null;
+    }
+
     return (
         <Stack my={5} isInline alignItems="center">
             <Button disabled={currentPage === 1} onClick={decrement}>
